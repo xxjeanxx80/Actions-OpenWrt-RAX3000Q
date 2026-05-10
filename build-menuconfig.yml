@@ -1,0 +1,46 @@
+name: Build Menuconfig RAX3000Q
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'Bật kết nối SSH qua tmate'
+        required: false
+        default: 'true'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Kiểm tra mã nguồn
+      uses: actions/checkout@v3
+
+    - name: Cài đặt môi trường build
+      run: |
+        sudo apt update
+        sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+        bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib \
+        git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev libgpgme11-dev libltdl-dev \
+        libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libreadline-dev libssl-dev libtool lrzsz \
+        mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip libpython3-dev \
+        qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget \
+        xmlto xxd zlib1g-dev
+
+    - name: Cập nhật và cài đặt Feeds
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Kết nối SSH qua tmate
+      uses: P3TERX/ssh2-actions@main
+      if: github.event.inputs.ssh == 'true'
+
+    - name: Chế độ chờ cấu hình
+      if: github.event.inputs.ssh == 'true'
+      run: |
+        echo "HỆ THỐNG ĐANG ĐỢI BẠN CẤU HÌNH..."
+        echo "Hãy mở link tmate bên dưới và gõ: make menuconfig"
+        while [ ! -f /tmp/continue ]; do
+          sleep 10
+        done
